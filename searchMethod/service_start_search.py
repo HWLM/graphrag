@@ -1,0 +1,121 @@
+import os
+import shutil
+import uuid
+
+import pandas as pd
+import requests
+from flask import Flask, request
+
+from myInputCli import index_cli
+from ucSearchBase import run_local_search
+
+
+app = Flask(__name__)
+
+
+@app.route('/chat', methods=['POST'])
+def chat():
+    data = request.json
+    # 提供模型切换的参数
+    libraryId = data.get('libraryId', '/root/Desktop/ragprod/output/')
+    # root_dir = data.get('root_dir', '/default/root/dir')
+    communityLevel = data.get('communityLevel', 1)
+    # response_type = data.get('response_type', 'json')
+    query = data.get('query', '')
+
+    res = run_local_search(
+        data_dir="/root/Desktop/ragprod/output/" + libraryId + "/artifacts",
+        root_dir="/root/Desktop/ragprod",
+        community_level=communityLevel,
+        response_type="json",
+        query=query
+    )
+    return res, 200, {'Content-Type': 'application/json; charset=utf-8'}
+
+
+@app.route('/search', methods=['POST'])
+def search():
+    data = request.json
+    # 提供模型切换的参数
+    roleId = data.get('roleId', '')
+    # sessionId = data.get('sessionId', '')
+    sessionId = ''
+    communityLevel = data.get('communityLevel', 2)
+    query = data.get('query', '')
+    role_dir_path = "/root/Desktop/ragprod/output/" + roleId + sessionId
+    if not os.path.exists(role_dir_path):
+        sessionId = ''
+    res = run_local_search(
+        data_dir="/root/Desktop/ragprod/output/" + roleId + sessionId + "/artifacts",
+        root_dir="/root/Desktop/ragprod",
+        community_level=communityLevel,
+        response_type="json",
+        query=query
+    )
+    resultData = {"sessionId": sessionId,
+                  "data": res}
+    return resultData, 200, {'Content-Type': 'application/json; charset=utf-8'}
+
+
+@app.route('/inputData', methods=['POST'])
+def inputData():
+    data = request.json
+    # 提供模型切换的参数
+    roleId = data.get('roleId', '/root/Desktop/ragprod/output/')
+    inputData = data.get('inputData', '')
+    sessionId = data.get('sessionId', '')
+    print("inputDataRoleId:" + roleId + "_" + sessionId)
+
+    if sessionId is not None and sessionId != '':
+        return 'success', 200, {'Content-Type': 'application/json; charset=utf-8'}
+
+    role_path = roleId + sessionId
+    role_path_temp = role_path + "temp"
+
+    txt = requests.get(inputData, 'charset=utf-8')
+    txt.encoding = 'uft-8'
+    if txt.status_code == 200:
+        inputData = txt.text
+    else:
+        return 'fail,reader oss', 200, {'Content-Type': 'application/json; charset=utf-8'}
+
+    data = {
+        'text': [inputData],
+        'id': [uuid.uuid4().__str__()],
+        'title': [uuid.uuid4().__str__()]
+    }
+    df = pd.DataFrame(data)
+    print(df)
+    # dataset = dataset if dataset is not None else await _create_input(config.input)
+    dataset = pd.DataFrame(data)
+    res = index_cli(
+        root="/graphrag/config",
+        verbose=False,
+        resume=role_path_temp,
+        memprofile=False,
+        nocache=False,
+        reporter='none',
+        config=None,
+        emit=None,
+        dryrun=False,
+        init=False,
+        dataset=dataset,
+        overlay_defaults=False
+    )
+
+    if res == 'success':
+        role_dir_path = "/root/Desktop/ragprod/output/" + role_path
+        role_dir_path_temp = "/root/Desktop/ragprod/output/" + role_path_temp
+        # 检查目标目录是否存在
+        if os.path.exists(role_dir_path):
+            shutil.rmtree(role_dir_path)
+        shutil.copytree("/root/Desktop/ragprod/output/" + role_path_temp, "/root/Desktop/ragprod/output/" + role_path)
+        if os.path.exists(role_dir_path_temp):
+            shutil.rmtree(role_dir_path_temp)
+
+    return res, 200, {'Content-Type': 'application/json; charset=utf-8'}
+
+
+if __name__ == '__main__':
+    print("服务启动成功")
+    app.run(host='0.0.0.0')
