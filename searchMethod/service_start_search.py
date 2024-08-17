@@ -17,15 +17,15 @@ app = Flask(__name__)
 def chat():
     data = request.json
     # 提供模型切换的参数
-    libraryId = data.get('libraryId', '/root/Desktop/ragprod/output/')
+    libraryId = data.get('libraryId', '/rag-prod/output/')
     # root_dir = data.get('root_dir', '/default/root/dir')
     communityLevel = data.get('communityLevel', 1)
     # response_type = data.get('response_type', 'json')
     query = data.get('query', '')
 
     res = run_local_search(
-        data_dir="/root/Desktop/ragprod/output/" + libraryId + "/artifacts",
-        root_dir="/root/Desktop/ragprod",
+        data_dir="/rag-prod/output/" + libraryId + "/artifacts",
+        root_dir="/graphrag/config",
         community_level=communityLevel,
         response_type="json",
         query=query
@@ -42,12 +42,12 @@ def search():
     sessionId = ''
     communityLevel = data.get('communityLevel', 2)
     query = data.get('query', '')
-    role_dir_path = "/root/Desktop/ragprod/output/" + roleId + sessionId
+    role_dir_path = "/rag-prod/output/" + roleId + sessionId
     if not os.path.exists(role_dir_path):
         sessionId = ''
     res = run_local_search(
-        data_dir="/root/Desktop/ragprod/output/" + roleId + sessionId + "/artifacts",
-        root_dir="/root/Desktop/ragprod",
+        data_dir="/rag-prod/output/" + roleId + sessionId + "/artifacts",
+        root_dir="/graphrag/config",
         community_level=communityLevel,
         response_type="json",
         query=query
@@ -61,7 +61,7 @@ def search():
 def inputData():
     data = request.json
     # 提供模型切换的参数
-    roleId = data.get('roleId', '/root/Desktop/ragprod/output/')
+    roleId = data.get('roleId', '/rag-prod/output/')
     inputData = data.get('inputData', '')
     sessionId = data.get('sessionId', '')
     print("inputDataRoleId:" + roleId + "_" + sessionId)
@@ -104,12 +104,12 @@ def inputData():
     )
 
     if res == 'success':
-        role_dir_path = "/root/Desktop/ragprod/output/" + role_path
-        role_dir_path_temp = "/root/Desktop/ragprod/output/" + role_path_temp
+        role_dir_path = "/rag-prod/output/" + role_path
+        role_dir_path_temp = "/rag-prod/output/" + role_path_temp
         # 检查目标目录是否存在
         if os.path.exists(role_dir_path):
             shutil.rmtree(role_dir_path)
-        shutil.copytree("/root/Desktop/ragprod/output/" + role_path_temp, "/root/Desktop/ragprod/output/" + role_path)
+        shutil.copytree("/rag-prod/output/" + role_path_temp, "/rag-prod/output/" + role_path)
         if os.path.exists(role_dir_path_temp):
             shutil.rmtree(role_dir_path_temp)
 
