@@ -52,7 +52,7 @@ def search():
         root_dir="/root/Desktop/ragprod",
         community_level=communityLevel,
         response_type="json",
-        call_back=callBackFlag,
+        call_ball=callBackFlag,
         query=query
     )
     resultData = {"sessionId": sessionId,
