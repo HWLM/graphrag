@@ -44,15 +44,15 @@ def search():
     communityLevel = data.get('communityLevel', 2)
     query = data.get('query', '')
     callBackFlag = data.get('callBackFlag', 'false')
-    role_dir_path = "D:\\ragoutput\\output\\" + roleId + sessionId
+    role_dir_path = "/root/Desktop/ragprod/output/" + roleId + sessionId
     if not os.path.exists(role_dir_path):
         sessionId = ''
     res = run_local_search(
-        data_dir="D:\\ragoutput\\output\\" + roleId + sessionId + "/artifacts",
-        root_dir="D:\\ragoutput",
+        data_dir="/root/Desktop/ragprod/output/" + roleId + sessionId + "/artifacts",
+        root_dir="/root/Desktop/ragprod",
         community_level=communityLevel,
         response_type="json",
-        call_ball=callBackFlag,
+        call_back=callBackFlag,
         query=query
     )
     resultData = {"sessionId": sessionId,
