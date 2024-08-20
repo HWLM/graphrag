@@ -17,6 +17,7 @@ from graphrag.query.llm.base import BaseLLM, BaseLLMCallback
 from graphrag.query.structured_search.base import BaseSearch, SearchResult
 import json
 from uc_system_prompt import LOCAL_SEARCH_SYSTEM_PROMPT
+from graphrag.query.llm.text_utils import num_tokens
 
 DEFAULT_LLM_PARAMS = {
     "max_tokens": 1500,
@@ -107,6 +108,7 @@ class LocalSearch(BaseSearch):
     def search(
         self,
         query: str,
+        call_ball: bool,
         conversation_history: ConversationHistory | None = None,
         **kwargs,
     ) -> SearchResult:
@@ -124,6 +126,11 @@ class LocalSearch(BaseSearch):
             search_prompt = self.system_prompt.format(
                 context_data=context_text, response_type=self.response_type
             )
+
+            search_prompt += "\n" + (
+                "if user want picture or voice or video,then you can tell user callback user provides function,"
+                "assistant should get arguments from user chat content,then back and set arguments")
+
             search_messages = [
                 {"role": "system", "content": search_prompt},
                 {"role": "user", "content": query},
@@ -136,6 +143,7 @@ class LocalSearch(BaseSearch):
                 messages=search_messages,
                 streaming=True,
                 callbacks=self.callbacks,
+                call_ball=call_ball,
                 **self.llm_params,
             )
 

@@ -65,6 +65,7 @@ class ChatOpenAI(BaseLLM, OpenAILLMImpl):
         messages: str | list[Any],
         streaming: bool = True,
         callbacks: list[BaseLLMCallback] | None = None,
+        call_ball: bool = False,
         **kwargs: Any,
     ) -> str:
         """Generate text."""
@@ -81,6 +82,7 @@ class ChatOpenAI(BaseLLM, OpenAILLMImpl):
                         messages=messages,
                         streaming=streaming,
                         callbacks=callbacks,
+                        call_ball=call_ball,
                         **kwargs,
                     )
         except RetryError as e:
@@ -127,6 +129,7 @@ class ChatOpenAI(BaseLLM, OpenAILLMImpl):
         messages: str | list[Any],
         streaming: bool = True,
         callbacks: list[BaseLLMCallback] | None = None,
+        call_ball: bool = False,
         **kwargs: Any,
     ) -> str:
         model = self.model
@@ -136,6 +139,7 @@ class ChatOpenAI(BaseLLM, OpenAILLMImpl):
             model=model,
             messages=messages,  # type: ignore
             stream=streaming,
+            call_back=call_ball,
             **kwargs,
         )  # type: ignore
         if streaming:
