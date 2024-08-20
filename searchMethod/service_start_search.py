@@ -9,15 +9,17 @@ from flask import Flask, request
 from myInputCli import index_cli
 from ucSearchBase import run_local_search
 
-
 app = Flask(__name__)
+
+CONFIG_ROOT_DIR = "/graphrag/config"
+OUTPUT_ROOT_DIR = "/rag-prod/output/"
 
 
 @app.route('/chat', methods=['POST'])
 def chat():
     data = request.json
     # 提供模型切换的参数
-    libraryId = data.get('libraryId', '/rag-prod/output/')
+    libraryId = data.get('libraryId', OUTPUT_ROOT_DIR)
     # root_dir = data.get('root_dir', '/default/root/dir')
     communityLevel = data.get('communityLevel', 1)
     # response_type = data.get('response_type', 'json')
@@ -38,8 +40,7 @@ def search():
     data = request.json
     # 提供模型切换的参数
     roleId = data.get('roleId', '')
-    # sessionId = data.get('sessionId', '')
-    sessionId = ''
+    sessionId = data.get('sessionId', '')
     communityLevel = data.get('communityLevel', 2)
     query = data.get('query', '')
     role_dir_path = "/rag-prod/output/" + roleId + sessionId
@@ -66,28 +67,22 @@ def inputData():
     sessionId = data.get('sessionId', '')
     print("inputDataRoleId:" + roleId + "_" + sessionId)
 
-    if sessionId is not None and sessionId != '':
-        return 'success', 200, {'Content-Type': 'application/json; charset=utf-8'}
-
     role_path = roleId + sessionId
     role_path_temp = role_path + "temp"
 
-    txt = requests.get(inputData, 'charset=utf-8')
-    txt.encoding = 'uft-8'
-    if txt.status_code == 200:
-        inputData = txt.text
-    else:
-        return 'fail,reader oss', 200, {'Content-Type': 'application/json; charset=utf-8'}
+    # 下载文件
+    _download_file(inputData)
 
     data = {
         'text': [inputData],
         'id': [uuid.uuid4().__str__()],
         'title': [uuid.uuid4().__str__()]
     }
-    df = pd.DataFrame(data)
-    print(df)
-    # dataset = dataset if dataset is not None else await _create_input(config.input)
+
     dataset = pd.DataFrame(data)
+    print(dataset)
+    # dataset = dataset if dataset is not None else await _create_input(config.input)
+
     res = index_cli(
         root="/graphrag/config",
         verbose=False,
@@ -114,6 +109,19 @@ def inputData():
             shutil.rmtree(role_dir_path_temp)
 
     return res, 200, {'Content-Type': 'application/json; charset=utf-8'}
+
+
+
+'''传入 file_url 下载该文件'''
+def _download_file(
+        file_url: str
+) -> str:
+    txt = requests.get(file_url, 'charset=utf-8')
+    txt.encoding = 'uft-8'
+    if txt.status_code == 200:
+        return txt.text
+    else:
+        raise requests.exceptions.RequestException("文件下载发生异常")
 
 
 if __name__ == '__main__':
