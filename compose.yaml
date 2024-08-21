@@ -6,7 +6,6 @@ services:
       interval: 5m
       test: curl -f http://localhost:5000
     volumes:
-      - ./config:/graphrag/config
       - /rag-prod:/rag-prod
     ports:
       - "5000:5000"

@@ -11,8 +11,25 @@ from ucSearchBase import run_local_search
 
 app = Flask(__name__)
 
-CONFIG_ROOT_DIR = "/graphrag/config"
-OUTPUT_ROOT_DIR = "/rag-prod/output/"
+environment_name = os.getenv("ENVIRONMENT", "production")
+
+print(environment_name)
+
+configurations = {
+    "production": {
+        "config_root_dir": "/rag-prod",
+        "output_root_dir": "/rag-prod/output/"
+    },
+    "development": {
+        "config_root_dir": "../ragtest",
+        "output_root_dir": "../ragtest/output/"
+    }
+}
+
+OUTPUT_ROOT_DIR = configurations[environment_name]["output_root_dir"]
+CONFIG_ROOT_DIR = configurations[environment_name]["config_root_dir"]
+
+print(environment_name)
 
 
 @app.route('/chat', methods=['POST'])
@@ -26,8 +43,8 @@ def chat():
     query = data.get('query', '')
 
     res = run_local_search(
-        data_dir="/rag-prod/output/" + libraryId + "/artifacts",
-        root_dir="/graphrag/config",
+        data_dir=OUTPUT_ROOT_DIR + libraryId + "/artifacts",
+        root_dir=CONFIG_ROOT_DIR,
         community_level=communityLevel,
         response_type="json",
         query=query
@@ -44,12 +61,12 @@ def search():
     communityLevel = data.get('communityLevel', 2)
     query = data.get('query', '')
     callBackFlag = data.get('callBackFlag', 'false')
-    role_dir_path = "/root/Desktop/ragprod/output/" + roleId + sessionId
+    role_dir_path = OUTPUT_ROOT_DIR + roleId + sessionId
     if not os.path.exists(role_dir_path):
         sessionId = ''
     res = run_local_search(
-        data_dir="/root/Desktop/ragprod/output/" + roleId + sessionId + "/artifacts",
-        root_dir="/root/Desktop/ragprod",
+        data_dir=OUTPUT_ROOT_DIR + roleId + sessionId + "/artifacts",
+        root_dir=CONFIG_ROOT_DIR,
         community_level=communityLevel,
         response_type="json",
         call_ball=callBackFlag,
@@ -64,8 +81,9 @@ def search():
 def inputData():
     data = request.json
     # 提供模型切换的参数
-    roleId = data.get('roleId', '/rag-prod/output/')
+    roleId = data.get('roleId', OUTPUT_ROOT_DIR)
     inputData = data.get('inputData', '')
+    knowledge_file_url = data.get('knowledgeFileUrl', '')
     sessionId = data.get('sessionId', '')
     print("inputDataRoleId:" + roleId + "_" + sessionId)
 
@@ -73,7 +91,8 @@ def inputData():
     role_path_temp = role_path + "temp"
 
     # 下载文件
-    _download_file(inputData)
+    if knowledge_file_url is not None and knowledge_file_url != '':
+        inputData += _download_file(knowledge_file_url)
 
     data = {
         'text': [inputData],
@@ -86,7 +105,7 @@ def inputData():
     # dataset = dataset if dataset is not None else await _create_input(config.input)
 
     res = index_cli(
-        root="/graphrag/config",
+        root=CONFIG_ROOT_DIR,
         verbose=False,
         resume=role_path_temp,
         memprofile=False,
@@ -101,17 +120,16 @@ def inputData():
     )
 
     if res == 'success':
-        role_dir_path = "/rag-prod/output/" + role_path
-        role_dir_path_temp = "/rag-prod/output/" + role_path_temp
+        role_dir_path = OUTPUT_ROOT_DIR + role_path
+        role_dir_path_temp = OUTPUT_ROOT_DIR + role_path_temp
         # 检查目标目录是否存在
         if os.path.exists(role_dir_path):
             shutil.rmtree(role_dir_path)
-        shutil.copytree("/rag-prod/output/" + role_path_temp, "/rag-prod/output/" + role_path)
+        shutil.copytree(OUTPUT_ROOT_DIR + role_path_temp, OUTPUT_ROOT_DIR + role_path)
         if os.path.exists(role_dir_path_temp):
             shutil.rmtree(role_dir_path_temp)
 
     return res, 200, {'Content-Type': 'application/json; charset=utf-8'}
-
 
 
 '''传入 file_url 下载该文件'''
