@@ -30,19 +30,19 @@ class ChatOpenAI(BaseLLM, OpenAILLMImpl):
     """Wrapper for OpenAI ChatCompletion models."""
 
     def __init__(
-        self,
-        api_key: str | None = None,
-        model: str | None = None,
-        azure_ad_token_provider: Callable | None = None,
-        deployment_name: str | None = None,
-        api_base: str | None = None,
-        api_version: str | None = None,
-        api_type: OpenaiApiType = OpenaiApiType.OpenAI,
-        organization: str | None = None,
-        max_retries: int = 10,
-        request_timeout: float = 180.0,
-        retry_error_types: tuple[type[BaseException]] = OPENAI_RETRY_ERROR_TYPES,  # type: ignore
-        reporter: StatusReporter | None = None,
+            self,
+            api_key: str | None = None,
+            model: str | None = None,
+            azure_ad_token_provider: Callable | None = None,
+            deployment_name: str | None = None,
+            api_base: str | None = None,
+            api_version: str | None = None,
+            api_type: OpenaiApiType = OpenaiApiType.OpenAI,
+            organization: str | None = None,
+            max_retries: int = 10,
+            request_timeout: float = 180.0,
+            retry_error_types: tuple[type[BaseException]] = OPENAI_RETRY_ERROR_TYPES,  # type: ignore
+            reporter: StatusReporter | None = None,
     ):
         OpenAILLMImpl.__init__(
             self=self,
@@ -61,13 +61,13 @@ class ChatOpenAI(BaseLLM, OpenAILLMImpl):
         self.retry_error_types = retry_error_types
 
     def generate(
-        self,
-        messages: str | list[Any],
-        streaming: bool = True,
-        callbacks: list[BaseLLMCallback] | None = None,
-        call_ball: bool = False,
-        tools: str | None = None,
-        **kwargs: Any,
+            self,
+            messages: str | list[Any],
+            streaming: bool = True,
+            callbacks: list[BaseLLMCallback] | None = None,
+            call_ball: bool = False,
+            tools: str | None = None,
+            **kwargs: Any,
     ) -> str:
         """Generate text."""
         try:
@@ -97,11 +97,11 @@ class ChatOpenAI(BaseLLM, OpenAILLMImpl):
             return ""
 
     async def agenerate(
-        self,
-        messages: str | list[Any],
-        streaming: bool = True,
-        callbacks: list[BaseLLMCallback] | None = None,
-        **kwargs: Any,
+            self,
+            messages: str | list[Any],
+            streaming: bool = True,
+            callbacks: list[BaseLLMCallback] | None = None,
+            **kwargs: Any,
     ) -> str:
         """Generate text asynchronously."""
         try:
@@ -127,25 +127,39 @@ class ChatOpenAI(BaseLLM, OpenAILLMImpl):
             return ""
 
     def _generate(
-        self,
-        messages: str | list[Any],
-        streaming: bool = True,
-        callbacks: list[BaseLLMCallback] | None = None,
-        call_ball: bool = False,
-        tools: str | None = None,
-        **kwargs: Any,
+            self,
+            messages: str | list[Any],
+            streaming: bool = True,
+            callbacks: list[BaseLLMCallback] | None = None,
+            call_ball: bool = False,
+            tools: str | None = None,
+            **kwargs: Any,
     ) -> str:
         model = self.model
         if not model:
             raise ValueError(_MODEL_REQUIRED_MSG)
-        response = self.sync_client.chat.completions.create(  # type: ignore
-            model=model,
-            messages=messages,  # type: ignore
-            stream=streaming,
-            call_back=call_ball,
-            toolStr=tools,
-            **kwargs,
-        )  # type: ignore
+
+        if call_ball:
+            tool_choice = 'auto'
+            tools_list = json.loads(tools)
+            response = self.sync_client.chat.completions.create(  # type: ignore
+                model=model,
+                messages=messages,  # type: ignore
+                stream=streaming,
+                call_back=call_ball,
+                tools=tools_list,
+                tool_choice=tool_choice,
+                **kwargs,
+            )
+        else:
+            response = self.sync_client.chat.completions.create(  # type: ignore
+                model=model,
+                messages=messages,  # type: ignore
+                stream=streaming,
+                call_back=call_ball,
+                **kwargs, )
+            # type: ignore
+
         if streaming:
             full_response = ""
             rollback_method = ""
@@ -192,11 +206,11 @@ class ChatOpenAI(BaseLLM, OpenAILLMImpl):
         return response.choices[0].message.content or ""  # type: ignore
 
     async def _agenerate(
-        self,
-        messages: str | list[Any],
-        streaming: bool = True,
-        callbacks: list[BaseLLMCallback] | None = None,
-        **kwargs: Any,
+            self,
+            messages: str | list[Any],
+            streaming: bool = True,
+            callbacks: list[BaseLLMCallback] | None = None,
+            **kwargs: Any,
     ) -> str:
         model = self.model
         if not model:
