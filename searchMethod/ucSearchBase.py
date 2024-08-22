@@ -98,6 +98,7 @@ def run_local_search(
     community_level: int,
     response_type: str,
     call_ball: bool,
+    tools: str,
     query: str,
 ):
     """Run a local search with the given query."""
@@ -153,7 +154,7 @@ def run_local_search(
         response_type=response_type,
     )
 
-    result = search_engine.search(query=query, call_ball=call_ball)
+    result = search_engine.search(query=query, call_ball=call_ball, tools=tools)
     reporter.success(f"Local Search Response: {result.response}")
     return result.response
 

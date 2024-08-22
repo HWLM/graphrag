@@ -2,7 +2,7 @@
 # Licensed under the MIT License
 
 """Chat-based OpenAI LLM implementation."""
-
+import json
 from collections.abc import Callable
 from typing import Any
 
@@ -66,6 +66,7 @@ class ChatOpenAI(BaseLLM, OpenAILLMImpl):
         streaming: bool = True,
         callbacks: list[BaseLLMCallback] | None = None,
         call_ball: bool = False,
+        tools: str | None = None,
         **kwargs: Any,
     ) -> str:
         """Generate text."""
@@ -83,6 +84,7 @@ class ChatOpenAI(BaseLLM, OpenAILLMImpl):
                         streaming=streaming,
                         callbacks=callbacks,
                         call_ball=call_ball,
+                        tools=tools,
                         **kwargs,
                     )
         except RetryError as e:
@@ -130,6 +132,7 @@ class ChatOpenAI(BaseLLM, OpenAILLMImpl):
         streaming: bool = True,
         callbacks: list[BaseLLMCallback] | None = None,
         call_ball: bool = False,
+        tools: str | None = None,
         **kwargs: Any,
     ) -> str:
         model = self.model
@@ -140,22 +143,39 @@ class ChatOpenAI(BaseLLM, OpenAILLMImpl):
             messages=messages,  # type: ignore
             stream=streaming,
             call_back=call_ball,
+            toolStr=tools,
             **kwargs,
         )  # type: ignore
         if streaming:
             full_response = ""
+            rollback_method = ""
+            arguements = ""
             while True:
                 try:
                     chunk = response.__next__()  # type: ignore
                     if not chunk or not chunk.choices:
                         continue
+                    print(chunk)
+                    if not chunk.choices[0].delta or not chunk.choices[0].delta.tool_calls:
+                        delta = (
+                            chunk.choices[0].delta.content
+                            if chunk.choices[0].delta and chunk.choices[0].delta.content
+                            else ""
+                        )
+                        full_response += delta
+                        continue
+                    if not chunk.choices[0].delta.tool_calls[0].function.name:
+                        if not chunk.choices[0].delta.tool_calls[0].function.arguments:
+                            continue
+                        arguements += chunk.choices[0].delta.tool_calls[0].function.arguments
+                        continue
+                    rollback_method = chunk.choices[0].delta.tool_calls[0].function.name
 
                     delta = (
                         chunk.choices[0].delta.content
                         if chunk.choices[0].delta and chunk.choices[0].delta.content
                         else ""
-                    )  # type: ignore
-
+                    )
                     full_response += delta
                     if callbacks:
                         for callback in callbacks:
@@ -164,7 +184,11 @@ class ChatOpenAI(BaseLLM, OpenAILLMImpl):
                         break
                 except StopIteration:
                     break
-            return full_response
+            if not rollback_method and not arguements:
+                return full_response
+            else:
+                response_dict = {"method": rollback_method, "arguements": arguements}
+            return json.dumps(response_dict)
         return response.choices[0].message.content or ""  # type: ignore
 
     async def _agenerate(

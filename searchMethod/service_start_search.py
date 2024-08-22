@@ -61,6 +61,7 @@ def search():
     communityLevel = data.get('communityLevel', 2)
     query = data.get('query', '')
     callBackFlag = data.get('callBackFlag', 'false')
+    tools = data.get('tools', '')
     role_dir_path = OUTPUT_ROOT_DIR + roleId + sessionId
     if not os.path.exists(role_dir_path):
         sessionId = ''
@@ -70,6 +71,7 @@ def search():
         community_level=communityLevel,
         response_type="json",
         call_ball=callBackFlag,
+        tools=tools,
         query=query
     )
     resultData = {"sessionId": sessionId,

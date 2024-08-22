@@ -28,6 +28,7 @@ class BaseLLM(ABC):
         streaming: bool = True,
         callbacks: list[BaseLLMCallback] | None = None,
         call_ball: bool = False,
+        tools: str | None = None,
         **kwargs: Any,
     ) -> str:
         """Generate a response."""
