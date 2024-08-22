@@ -146,7 +146,6 @@ class ChatOpenAI(BaseLLM, OpenAILLMImpl):
                 model=model,
                 messages=messages,  # type: ignore
                 stream=streaming,
-                call_back=call_ball,
                 tools=tools_list,
                 tool_choice=tool_choice,
                 **kwargs,
@@ -156,7 +155,6 @@ class ChatOpenAI(BaseLLM, OpenAILLMImpl):
                 model=model,
                 messages=messages,  # type: ignore
                 stream=streaming,
-                call_back=call_ball,
                 **kwargs, )
             # type: ignore
 
