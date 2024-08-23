@@ -167,7 +167,6 @@ class ChatOpenAI(BaseLLM, OpenAILLMImpl):
                     chunk = response.__next__()  # type: ignore
                     if not chunk or not chunk.choices:
                         continue
-                    print(chunk)
                     if not chunk.choices[0].delta or not chunk.choices[0].delta.tool_calls:
                         delta = (
                             chunk.choices[0].delta.content
