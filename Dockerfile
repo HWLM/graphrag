@@ -8,7 +8,7 @@ WORKDIR /graphrag
 COPY . /graphrag/
 
 
-RUN pip install . && pip install flask
+RUN pip install . && pip install flask && pip install future
 
 
 EXPOSE 5000
