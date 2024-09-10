@@ -143,6 +143,7 @@ def _download_file(
     if txt.status_code == 200:
         return txt.text
     else:
+        print("download oss file error")
         raise requests.exceptions.RequestException("文件下载发生异常")
 
 
