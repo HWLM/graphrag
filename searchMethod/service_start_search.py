@@ -133,6 +133,24 @@ def inputData():
 
     return res, 200, {'Content-Type': 'application/json; charset=utf-8'}
 
+@app.route('/getKnowledgeSyncStatus', methods=['POST'])
+def getKnowledgeSyncStatus():
+    data = request.json
+    knowledge_ids = data.get("knowledgeIds","")
+    if knowledge_ids is None and len(knowledge_ids) < 1:
+        return '请求参数为空',500,{'Content-Type': 'application/json; charset=utf-8'}
+
+    root_dir_str = OUTPUT_ROOT_DIR+"/"
+    res = []
+    for x in knowledge_ids:
+        file_dir = root_dir_str + x + "/artifacts"
+        if os.path.exists(file_dir):
+            res.append(x)
+    return res,200,{'Content-Type': 'application/json; charset=utf-8'}
+
+
+
+
 
 '''传入 file_url 下载该文件'''
 def _download_file(
