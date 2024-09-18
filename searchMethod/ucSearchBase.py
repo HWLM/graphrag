@@ -105,7 +105,6 @@ def run_local_search(
     data_dir, root_dir, config = _configure_paths_and_settings(data_dir, root_dir)
     data_path = Path(data_dir)
 
-    final_nodes = pd.read_parquet(data_path / "create_final_nodes.parquet")
     final_community_reports = pd.read_parquet(
         data_path / "create_final_community_reports.parquet"
     )
@@ -156,7 +155,7 @@ def run_local_search(
 
     result = search_engine.search(query=query, call_ball=call_ball, tools=tools)
     reporter.success(f"Local Search Response: {result.response}")
-    return result.response
+    return result
 
 
 def _configure_paths_and_settings(

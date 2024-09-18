@@ -6,6 +6,7 @@ import pandas as pd
 import requests
 from flask import Flask, request
 
+from graphrag.query.llm.text_utils import num_tokens
 from myInputCli import index_cli
 from ucSearchBase import run_local_search
 
@@ -74,8 +75,12 @@ def search():
         tools=tools,
         query=query
     )
+
     resultData = {"sessionId": sessionId,
-                  "data": res}
+                  "data": res.response,
+                  "promptTokens": res.prompt_tokens,
+                  "responseTokens": res.response_tokens}
+
     return resultData, 200, {'Content-Type': 'application/json; charset=utf-8'}
 
 

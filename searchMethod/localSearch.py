@@ -152,6 +152,7 @@ class LocalSearch(BaseSearch):
                 completion_time=time.time() - start_time,
                 llm_calls=1,
                 prompt_tokens=num_tokens(search_prompt, self.token_encoder),
+                response_tokens=num_tokens(response, self.token_encoder),
             )
 
         except Exception:
