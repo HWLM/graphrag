@@ -100,6 +100,8 @@ def run_local_search(
     call_ball: bool,
     tools: str,
     query: str,
+    model: str,
+    max_tokens: int
 ):
     """Run a local search with the given query."""
     data_dir, root_dir, config = _configure_paths_and_settings(data_dir, root_dir)
@@ -140,6 +142,8 @@ def run_local_search(
         else []
     )
 
+    config.llm.model = model
+    config.llm.max_tokens = max_tokens
     search_engine = get_local_search_engine(
         config,
         reports=read_indexer_reports(

@@ -63,6 +63,8 @@ def search():
     query = data.get('query', '')
     callBackFlag = data.get('callBackFlag', 'false')
     tools = data.get('tools', '')
+    model = data.get('model', '')
+    max_tokens = data.get('maxTokens', 10)
     role_dir_path = OUTPUT_ROOT_DIR + roleId + sessionId
     if not os.path.exists(role_dir_path):
         sessionId = ''
@@ -73,7 +75,9 @@ def search():
         response_type="json",
         call_ball=callBackFlag,
         tools=tools,
-        query=query
+        query=query,
+        model = model,
+        max_tokens = max_tokens,
     )
 
     resultData = {"sessionId": sessionId,
